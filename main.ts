@@ -57,6 +57,9 @@ await runBars({
     if (state.warmingUp) return [];
 
     const close = Number(bar.c);
+    // A malformed bar must never poison the EMAs: one non-finite or non-positive close would
+    // turn every later gap and momentum reading into NaN and silently end the bot's race.
+    if (!Number.isFinite(close) || close <= 0) return [];
     closes.push(close);
     if (closes.length === FAST_SPAN) emaFast = closes.reduce((a, x) => a + x, 0) / FAST_SPAN;
     else if (closes.length > FAST_SPAN && emaFast !== null) emaFast = stepEma(emaFast, FAST_SPAN, close);
